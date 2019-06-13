@@ -7,12 +7,8 @@ import java.io.FileWriter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-
-import org.objectweb.asm.Type;
 
 public class Fixer
 {
@@ -27,65 +23,6 @@ public class Fixer
 
 	public int run()
 	{
-		File constr = new File(input, "constructors.txt");
-		if(!constr.exists())
-		{
-			System.out.println("constructors.txt not found");
-			return 2;
-		}
-
-		//Constructors
-		try
-		{
-			List<String> write = new ArrayList<>();
-			int highestConstr = 0;
-			try(BufferedReader reader =
-				new BufferedReader(new FileReader(constr)))
-			{
-				String line;
-				while((line = reader.readLine()) != null)
-				{
-					String[] split = line.split(" ");
-					if(split.length != 3 || !isInteger(split[0]))
-						throw new IllegalArgumentException(
-							"Unexpected pattern in constructors.txt");
-					StringBuilder res = new StringBuilder();
-					res.append(split[1]);
-					res.append(".<init>");
-					res.append(split[2]);
-					//Ignoring exceptions!
-					res.append("=|");
-					for(int i =
-						0; i < Type.getArgumentTypes(split[2]).length; i++)
-					{
-						res.append("p_i" + split[0] + "_" + i + "_");
-						if(i < Type.getArgumentTypes(split[2]).length - 1)
-							res.append(",");
-					}
-					write.add(res.toString());
-					highestConstr = Integer.parseInt(split[0]);
-				}
-			}
-			write.add(0, "max_constructor_index=" + highestConstr);
-			SimpleDateFormat format =
-				new SimpleDateFormat("EEE MMM dd HH:MM:ss z yyyy");
-			write.add(0, "#" + format.format(new Date()));
-			write.add(0, "#max index=" + highestConstr);
-			File excJoined = new File(output, "joined.exc");
-			excJoined.createNewFile();
-			FileWriter writer = new FileWriter(new File(output, "joined.exc"));
-			for(String w : write)
-				writer.write(w + "\n");
-			writer.close();
-			System.out.println("Wrote joined.exc");
-		}catch(Exception e)
-		{
-			e.printStackTrace();
-			System.out.println(
-				"Error reading constructors.txt. Did you select the correct file?");
-			return 4;
-		}
-
 		File inject = new File(input, "inject");
 		if(!inject.exists())
 		{
