@@ -1,6 +1,7 @@
 package com.thistestuser.mcpfixer;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -9,6 +10,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 
 public class Fixer
 {
@@ -26,7 +28,7 @@ public class Fixer
 		File inject = new File(input, "inject");
 		if(!inject.exists())
 		{
-			System.out.println("inject folder not found");
+			System.out.println("Inject folder not found");
 			return 3;
 		}
 
@@ -41,15 +43,32 @@ public class Fixer
 			for(File f : files)
 			{
 				if(f.toString().endsWith("Start.java"))
-					Files.move(Paths.get(f.toURI()), Paths.get(new File(outputPatch, "Start.java").toURI()), StandardCopyOption.REPLACE_EXISTING);
-				else if(f.toString().endsWith("MethodsReturnNonnullByDefault.java"))
+				{
+					File dest = new File(outputPatch, "Start.java");
+					Files.copy(Paths.get(f.toURI()), Paths.get(dest.toURI()), StandardCopyOption.REPLACE_EXISTING);
+					Scanner scanner = new Scanner(dest);
+					scanner.nextLine();
+					scanner.nextLine();
+					BufferedWriter out = new BufferedWriter(new FileWriter(dest));
+					while(scanner.hasNextLine())
+					{
+					    String next = scanner.nextLine();
+					    if(next.equals("\n")) 
+					    	out.newLine();
+					    else 
+					    	out.write(next);
+					    out.newLine(); 
+					}
+					out.close();
+					scanner.close();
+				}else if(f.toString().endsWith("MethodsReturnNonnullByDefault.java"))
 				{
 					File mcp = new File(new File(outputInject, "common"), "mcp");
 					mcp.mkdirs();
-					Files.move(Paths.get(f.toURI()), Paths.get(new File(mcp, "MethodsReturnNonnullByDefault.java").toURI()),
+					Files.copy(Paths.get(f.toURI()), Paths.get(new File(mcp, "MethodsReturnNonnullByDefault.java").toURI()),
 						StandardCopyOption.REPLACE_EXISTING);
 				}else if(f.toString().endsWith("package-info-template.java"))
-					Files.move(Paths.get(f.toURI()), Paths.get(new File(outputInject, "package-info-template.java").toURI()),
+					Files.copy(Paths.get(f.toURI()), Paths.get(new File(outputInject, "package-info-template.java").toURI()),
 						StandardCopyOption.REPLACE_EXISTING);
 			}
 			System.out.println("Copied inject folder from patches");
@@ -63,7 +82,7 @@ public class Fixer
 		File patches = new File(input, "patches");
 		if(!patches.exists())
 		{
-			System.out.println("patches folder not found");
+			System.out.println("Patches folder not found");
 			return 3;
 		}
 
