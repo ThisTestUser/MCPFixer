@@ -110,6 +110,8 @@ public class Fixer
 					parent = both;
 				else if(relativeName.startsWith("server"))
 					parent = server;
+				else if(relativeName.startsWith("shared"))
+					parent = null;
 				else
 				{
 					System.out.println("Unknown file " + relativeName + ", skipping");
@@ -129,13 +131,18 @@ public class Fixer
 					write.add(0, "--- minecraft" + javaName);
 					write.add(0, "diff -r -U 3 minecraft" + javaName + " minecraft_patched" + javaName);
 				}
-				File output = new File(parent, javaName.substring(1, javaName.length()).replace("\\", ".") + ".patch");
-				output.getParentFile().mkdirs();
-				output.createNewFile();
-				FileWriter writer = new FileWriter(output);
-				for(String w : write)
-					writer.write(w + "\n");
-				writer.close();
+				//Shared folder
+				File[] writeParents = parent == null ? new File[] {client, both, server} : new File[] {parent};
+				for(File par : writeParents)
+				{
+					File output = new File(par, javaName.substring(1, javaName.length()).replace("\\", ".") + ".patch");
+					output.getParentFile().mkdirs();
+					output.createNewFile();
+					FileWriter writer = new FileWriter(output);
+					for(String w : write)
+						writer.write(w + "\n");
+					writer.close();
+				}
 			}
 			System.out.println("Wrote all patches");
 		}catch(Exception e)
