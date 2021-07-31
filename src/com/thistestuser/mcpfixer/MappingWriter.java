@@ -50,17 +50,8 @@ public class MappingWriter
 		try
 		{
 			System.out.println("Reading mappings");
-			IMappingFile clientMapping = null;
-	        IMappingFile serverMapping = null;
-	        try
-	        {
-	        	clientMapping = IMappingFile.load(client);
-	        	serverMapping = IMappingFile.load(server);
-	        }catch(NullPointerException e)
-	        {
-	        	System.out.println("Remove the copyright line from the mappings!");
-	        	return 4;
-	        }
+			IMappingFile clientMapping = IMappingFile.load(client);
+	        IMappingFile serverMapping = IMappingFile.load(server);
 	        IMappingFile srg = IMappingFile.load(intermediateSrg);
 	        Map<String, String> clientFields = new TreeMap<>();
 	        Map<String, String> clientMethods = new TreeMap<>();
