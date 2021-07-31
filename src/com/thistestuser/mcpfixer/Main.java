@@ -22,6 +22,7 @@ public class Main
 			"The input where files will be read (patch mode only)");
 		options.addOption("o", "output", true, "The output to place files (patch mode only)");
 		options.addOption("c", "conf", true, "The config folder in your mcp workspace (csv mode only)");
+		options.addOption("w", "mcp", true, "The directory of your mcp workspace (libraries mode only)");
 		options.addOption("m", "mode", true, "Either \"patch\", \"csv\", or \"libraries\"");
 		
 		CommandLineParser cmdlineParser = new DefaultParser();
@@ -93,6 +94,23 @@ public class Main
 			}
 			
 			return new MappingWriter(confFolder).run();
+		}
+		if(mode.equalsIgnoreCase("libraries"))
+		{
+			if(!cmdLine.hasOption("mcp"))
+			{
+				System.out.println("No mcp folder specified");
+				return 3;
+			}
+			
+			String mcp = cmdLine.getOptionValue("mcp");
+			File mcpFolder = new File(mcp);
+			if(!mcpFolder.exists())
+			{
+				System.out.println("Invaild mcp location");
+				return 3;
+			}
+			return new ClasspathGenerator(mcpFolder).run();
 		}
 		System.out.println("Invalid mode (patch, csv, or libraries) specified");
 		return 2;

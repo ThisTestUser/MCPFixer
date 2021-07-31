@@ -157,7 +157,7 @@ public class PatchFixer
 		return 0;
 	}
 
-	public void getAllFiles(String directoryName, List<File> files)
+	private void getAllFiles(String directoryName, List<File> files)
 	{
 		File directory = new File(directoryName);
 		
@@ -168,17 +168,5 @@ public class PatchFixer
 					files.add(file);
 				else if(file.isDirectory())
 					getAllFiles(file.getAbsolutePath(), files);
-	}
-
-	public boolean isInteger(String s)
-	{
-		try
-		{
-			Integer.parseInt(s);
-			return true;
-		}catch(NumberFormatException e)
-		{
-			return false;
-		}
 	}
 }
