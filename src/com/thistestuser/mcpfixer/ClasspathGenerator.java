@@ -46,11 +46,12 @@ public class ClasspathGenerator
 			System.out.println("Writing to .classpath");
 			String[] split = version.split("\\.");
 			boolean oldJava = Integer.parseInt(split[0]) == 1 && Integer.parseInt(split[1]) <= 16;
+			boolean java16  = !oldJava && Integer.parseInt(split[0]) == 1 && Integer.parseInt(split[1]) == 17;
 			FileWriter writer = new FileWriter(classpath);
 			writeLine(writer, 0, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
 			writeLine(writer, 0, "<classpath>");
 			writeLine(writer, 1, "<classpathentry kind=\"src\" path=\"src\"/>");
-			String javaVersion = oldJava ? "1.6" : "16";
+			String javaVersion = oldJava ? "1.6" : java16 ? "16" : "17";
 			writeLine(writer, 1, "<classpathentry kind=\"con\" path=\"org.eclipse.jdt.launching.JRE_CONTAINER/"
 				+ "org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-" + javaVersion + "\"/>");
 			writeLine(writer, 1, "<classpathentry kind=\"lib\" path=\"jars/versions/" + version + "/"

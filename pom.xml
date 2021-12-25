@@ -5,8 +5,8 @@
   <version>0.0.1-SNAPSHOT</version>
   <repositories>
   	<repository>
-  		<id>jitpack.io</id>
-  		<url>https://jitpack.io</url>
+  		<id>Forge Maven</id>
+  		<url>https://maven.minecraftforge.net</url>
   	</repository>
   </repositories>
   <build>
@@ -29,9 +29,9 @@
     	<version>1.4</version>
 	</dependency>
 	<dependency>
-	    <groupId>com.github.MinecraftForge</groupId>
-	    <artifactId>SrgUtils</artifactId>
-	    <version>master</version>
+	    <groupId>net.minecraftforge</groupId>
+	    <artifactId>srgutils</artifactId>
+	    <version>0.4.9</version>
 	</dependency>
   </dependencies>
 </project>
