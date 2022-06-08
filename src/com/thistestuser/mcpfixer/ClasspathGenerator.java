@@ -3,6 +3,8 @@ package com.thistestuser.mcpfixer;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -46,7 +48,46 @@ public class ClasspathGenerator
 			System.out.println("Writing to .classpath");
 			String[] split = version.split("\\.");
 			boolean oldJava = Integer.parseInt(split[0]) == 1 && Integer.parseInt(split[1]) <= 16;
-			boolean java16  = !oldJava && Integer.parseInt(split[0]) == 1 && Integer.parseInt(split[1]) == 17;
+			boolean java16 = !oldJava && Integer.parseInt(split[0]) == 1 && Integer.parseInt(split[1]) == 17;
+			boolean moveNatives = !(Integer.parseInt(split[0]) == 1 && Integer.parseInt(split[1]) <= 18);
+			
+			if(moveNatives)
+			{
+				//Move native libraries from MCPConfig to MCP
+				File libList = new File(mcpFolder, "conf/joined.fernflower.libs.txt");
+				if(!libList.exists())
+				{
+					System.out.println("joined.fernflower.libs.txt is missing from conf");
+					return 4;
+				}
+				
+				List<String> libs = Files.readAllLines(Paths.get(libList.getPath()));
+				for(String lib : libs)
+				{
+					lib = lib.substring(3);
+					if(!new File(lib).exists())
+					{
+						System.out.println("A file that was referred to in joined.fernflower.libs.txt does not exist.");
+						System.out.println("Please ensure MCPConfig has not been moved or deleted before running this tool.");
+						System.out.println(lib);
+						return 4;
+					}
+					String[] folders = lib.split("\\\\");
+					if(folders[folders.length - 1].contains("native"))
+					{
+						//Move native library
+						String[] subFolders = lib.split("build\\\\libraries\\\\");
+						File dest = new File(mcpFolder, "jars/libraries/" + subFolders[subFolders.length - 1]);
+						if(!dest.exists())
+						{
+							dest.getParentFile().mkdirs();
+							Files.move(Paths.get(lib), Paths.get(dest.getPath()));
+						}
+					}
+				}
+				System.out.println("Successfully moved native dependencies from MCPConfig to the jars folder");
+			}
+			
 			FileWriter writer = new FileWriter(classpath);
 			writeLine(writer, 0, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
 			writeLine(writer, 0, "<classpath>");
@@ -57,8 +98,9 @@ public class ClasspathGenerator
 			writeLine(writer, 1, "<classpathentry kind=\"lib\" path=\"jars/versions/" + version + "/"
 				+ version +".jar\">");
 			writeLine(writer, 2, "<attributes>");
-			writeLine(writer, 3, "<attribute name=\"org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY\" "
-				+ "value=\"Client/jars/versions/" + version + "/" + version + "-natives\"/>");
+			if(!moveNatives)
+				writeLine(writer, 3, "<attribute name=\"org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY\" "
+					+ "value=\"Client/jars/versions/" + version + "/" + version + "-natives\"/>");
 			writeLine(writer, 2, "</attributes>");
 			writeLine(writer, 1, "</classpathentry>");
 			List<File> files = new ArrayList<>();
