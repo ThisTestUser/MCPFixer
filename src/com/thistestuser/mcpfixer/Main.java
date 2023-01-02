@@ -1,6 +1,7 @@
 package com.thistestuser.mcpfixer;
 
 import java.io.File;
+import java.io.IOException;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -10,20 +11,21 @@ import org.apache.commons.cli.ParseException;
 
 public class Main
 {
-    public static void main(String[] args)
+    public static void main(String[] args) throws IOException
     {
         System.exit(run(args));
     }
     
-	public static int run(String[] args)
+	public static int run(String[] args) throws IOException
 	{
 		Options options = new Options();
 		options.addOption("i", "input", true,
 			"The input where files will be read (patch mode only)");
 		options.addOption("o", "output", true, "The output to place files (patch mode only)");
 		options.addOption("c", "conf", true, "The config folder in your mcp workspace (csv mode only)");
-		options.addOption("w", "mcp", true, "The directory of your mcp workspace (libraries mode only)");
-		options.addOption("m", "mode", true, "Either \"patch\", \"csv\", or \"libraries\"");
+		options.addOption("w", "mcp", true, "The directory of your mcp workspace (libraries and download mode only)");
+		options.addOption("v", "version", true, "The minecraft version of your mcp workspace (download mode only)");
+		options.addOption("m", "mode", true, "Either \"patch\", \"csv\", \"libraries\", or \"download\"");
 		
 		CommandLineParser cmdlineParser = new DefaultParser();
 		CommandLine cmdLine;
@@ -111,6 +113,28 @@ public class Main
 				return 3;
 			}
 			return new ClasspathGenerator(mcpFolder).run();
+		}
+		if(mode.equalsIgnoreCase("download")) {
+			if(!cmdLine.hasOption("mcp"))
+			{
+				System.out.println("No mcp folder specified");
+				return 3;
+			}
+			if(!cmdLine.hasOption("version"))
+			{
+				System.out.println("Minecraft version not specified");
+				return 3;
+			}
+
+			String mcp = cmdLine.getOptionValue("mcp");
+			String version = cmdLine.getOptionValue("version");
+			File mcpFolder = new File(mcp);
+			if(!mcpFolder.exists())
+			{
+				System.out.println("Invaild mcp location");
+				return 3;
+			}
+			return new FileDownloader(version, mcpFolder).run();
 		}
 		System.out.println("Invalid mode (patch, csv, or libraries) specified");
 		return 2;
