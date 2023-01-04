@@ -171,6 +171,28 @@ public class FileDownloader
                 return false;
         }
 
+        public static String getArchClassifier()
+        {
+                String arch = System.getProperty("os.arch");
+
+                if(arch.equals("x86") || (arch.startsWith("i") && (arch.endsWith("86"))))
+                {
+                        return "-x86";
+                }
+                else if(arch.equals("x86_64"))
+                {
+                        return "-x86_64";
+                }
+                else if(arch.equals("aarch64"))
+                {
+                        return "-arm64";
+                }
+                else
+                {
+                        return ".";
+                }
+        }
+
         public void downloadLibrary(JsonObject downloads, File mcpFolder) throws IOException
         {
                 String path = downloads.getAsJsonObject("artifact").get("path").getAsString();
@@ -179,6 +201,17 @@ public class FileDownloader
                 File file = new File(mcpFolder, "jars\\libraries\\" + path);
                 URL url = new URL(downloads.getAsJsonObject("artifact").get("url").getAsString());
                 FileUtils.copyURLToFile(url, file);
+
+                String os = OS.getOS().name;
+                if(path.contains("natives"))
+                {
+                        if(path.contains(os + getArchClassifier()))
+                        {
+                                System.out.println("Extracting native " + path.substring(path.lastIndexOf('/') + 1));
+								
+                                extractNative(version, file, mcpFolder);
+                        }
+                }
         }
 
         // < 1.19
@@ -217,10 +250,11 @@ public class FileDownloader
 
                 while (entry != null)
                 {
-                        String output = nativesDir.getAbsolutePath() + File.separator + entry.getName();
-                        String[] excluded = new String[] { "md5", "sha1", "git" };
+                        String name = entry.getName();
+                        String output = nativesDir.getAbsolutePath() + File.separator + name.substring(name.lastIndexOf('/') + 1);
+                        String[] included = new String[] { "dll", "dylib", "so" };
 
-                        if (!entry.isDirectory() && Arrays.stream(excluded).noneMatch(entry.getName()::endsWith))
+                        if (!entry.isDirectory() && Arrays.stream(included).anyMatch(entry.getName()::endsWith))
                         {
                                 BufferedOutputStream outputStream = new BufferedOutputStream(Files.newOutputStream(Paths.get(output)));
                                 byte[] b = new byte[4096];
