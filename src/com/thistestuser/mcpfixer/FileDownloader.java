@@ -64,7 +64,7 @@ public class FileDownloader
                 {
                         JsonElement id = versions.get(i).getAsJsonObject().get("id");
 
-                        if (id.getAsString().contains(version))
+                        if (id.getAsString().equals(version))
                         {
                                 URL url = new URL(versions.get(i).getAsJsonObject().get("url").getAsString());
                                 File versionJson = new File(mcpFolder, "jars\\versions\\" + version + "/" + version + ".json");
