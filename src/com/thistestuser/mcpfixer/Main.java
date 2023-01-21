@@ -114,7 +114,8 @@ public class Main
 			}
 			return new ClasspathGenerator(mcpFolder).run();
 		}
-		if(mode.equalsIgnoreCase("download")) {
+		if(mode.equalsIgnoreCase("download"))
+		{
 			if(!cmdLine.hasOption("mcp"))
 			{
 				System.out.println("No mcp folder specified");

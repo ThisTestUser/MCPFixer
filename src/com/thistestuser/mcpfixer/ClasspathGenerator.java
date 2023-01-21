@@ -114,7 +114,8 @@ public class ClasspathGenerator
 							.findFirst().orElse(null);
 					if(mainFile == null)
 						System.out.println("Warning: Source JAR was found but main JAR was not: " + file.getName());
-					sourceFiles.put(mainFile, file);
+					else
+						sourceFiles.put(mainFile, file);
 				}
 			for(Entry<File, File> entry : sourceFiles.entrySet())
 			{
