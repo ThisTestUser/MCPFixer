@@ -171,6 +171,7 @@ public class FileDownloader
 		return false;
 	}
 	
+	//Derived from https://github.com/HyCraftHD/Minecraft-Downloader/blob/main/src/main/java/net/hycrafthd/minecraft_downloader/util/OSUtil.java
 	public static String getArchClassifier()
 	{
 		String arch = System.getProperty("os.arch");
