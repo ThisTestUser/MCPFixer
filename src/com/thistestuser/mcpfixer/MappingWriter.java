@@ -87,8 +87,8 @@ public class MappingWriter
 				{
 					methods.add(new String[]{name, cname, "2", ""});
 					serverMethods.remove(name);
-	            }else
-	            	methods.add(new String[]{name, cname, "0", ""});
+				}else
+					methods.add(new String[]{name, cname, "0", ""});
 			}
 			
 			serverFields.forEach((k,v) -> fields.add(new String[] {k, v, "1", ""}));

@@ -99,9 +99,11 @@ public class FileDownloader
 			case "client":
 				File clientJar = new File(mcpFolder, "jars/versions/" + version + File.separator + version + ".jar");
 				FileUtils.copyURLToFile(url, clientJar);
+				break;
 			case "server":
 				File serverJar = new File(mcpFolder, "jars/minecraft_server." + version + ".jar");
 				FileUtils.copyURLToFile(url, serverJar);
+				break;
 		}
 	}
 	
