@@ -126,14 +126,14 @@ public class FileDownloader
 				{
 					downloadLibrary(downloads, mcpFolder);
 					if(downloads.has("classifiers"))
-						downloadNative(version, downloads.getAsJsonObject("classifiers"), mcpFolder);
+						downloadNative(version, downloads.getAsJsonObject("classifiers"), mcpFolder, entry.has("extract"));
 				}
 				continue;
 			}
 			
 			if(downloads.has("classifiers"))
 			{
-				downloadNative(version, downloads.getAsJsonObject("classifiers"), mcpFolder);
+				downloadNative(version, downloads.getAsJsonObject("classifiers"), mcpFolder, entry.has("extract"));
 				continue;
 			}
 			downloadLibrary(downloads, mcpFolder);
@@ -197,20 +197,11 @@ public class FileDownloader
 		File file = new File(mcpFolder, "jars/libraries/" + path);
 		URL url = new URL(downloads.getAsJsonObject("artifact").get("url").getAsString());
 		FileUtils.copyURLToFile(url, file);
-		
-		String os = OS.getOS().name;
-		if(path.contains("natives"))
-			if(path.contains(os + getArchClassifier()))
-			{
-				System.out.println("Extracting native " + path.substring(path.lastIndexOf('/') + 1));
-				
-				extractNative(version, file, mcpFolder);
-			}
 	}
 	
 	// < 1.19
 	public void downloadNative(String version, JsonObject classifiers,
-		File mcpFolder) throws IOException
+		File mcpFolder, boolean extract) throws IOException
 	{
 		String os = OS.getOS().name;
 		
@@ -220,13 +211,14 @@ public class FileDownloader
 			String url = classifiers.getAsJsonObject("natives-" + os).get("url").getAsString();
 			
 			System.out.println("Downloading native " + path.substring(path.lastIndexOf('/') + 1));
-			
 			File nativeFile = new File(mcpFolder, "jars/libraries/" + path);
 			FileUtils.copyURLToFile(new URL(url), nativeFile);
 			
-			System.out.println("Extracting native " + path.substring(path.lastIndexOf('/') + 1));
-			
-			extractNative(version, nativeFile, mcpFolder);
+			if(extract)
+			{
+				System.out.println("Extracting native " + path.substring(path.lastIndexOf('/') + 1));
+				extractNative(version, nativeFile, mcpFolder);
+			}
 		}
 	}
 	
