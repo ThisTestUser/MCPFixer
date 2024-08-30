@@ -3,8 +3,6 @@ package com.thistestuser.mcpfixer;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -47,58 +45,19 @@ public class ClasspathGenerator
 		{
 			System.out.println("Writing to .classpath");
 			String[] split = version.split("\\.");
-			boolean oldJava = Integer.parseInt(split[0]) == 1 && Integer.parseInt(split[1]) <= 16;
-			boolean java16 = !oldJava && Integer.parseInt(split[0]) == 1 && Integer.parseInt(split[1]) == 17;
-			boolean moveNatives = !(Integer.parseInt(split[0]) == 1 && Integer.parseInt(split[1]) <= 18);
-			
-			if(moveNatives)
-			{
-				//Move native libraries from MCPConfig to MCP
-				File libList = new File(mcpFolder, "conf/joined.fernflower.libs.txt");
-				if(!libList.exists())
-				{
-					System.out.println("joined.fernflower.libs.txt is missing from conf");
-					return 4;
-				}
-				
-				List<String> libs = Files.readAllLines(Paths.get(libList.getPath()));
-				for(String lib : libs)
-				{
-					lib = lib.substring(3);
-					if(!new File(lib).exists())
-					{
-						System.out.println("A file that was referred to in joined.fernflower.libs.txt does not exist.");
-						System.out.println("Please ensure MCPConfig has not been moved or deleted before running this tool.");
-						System.out.println(lib);
-						return 4;
-					}
-					String[] folders = lib.split("\\\\");
-					if(folders[folders.length - 1].contains("native"))
-					{
-						//Move native library
-						String[] subFolders = lib.split("build\\\\libraries\\\\");
-						File dest = new File(mcpFolder, "jars/libraries/" + subFolders[subFolders.length - 1]);
-						if(!dest.exists())
-						{
-							dest.getParentFile().mkdirs();
-							Files.move(Paths.get(lib), Paths.get(dest.getPath()));
-						}
-					}
-				}
-				System.out.println("Successfully moved native dependencies from MCPConfig to the jars folder");
-			}
+			boolean inclNatives = Integer.parseInt(split[0]) == 1 && Integer.parseInt(split[1]) <= 18;
+			String javaVersion = getJavaVersion(split);
 			
 			FileWriter writer = new FileWriter(classpath);
 			writeLine(writer, 0, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
 			writeLine(writer, 0, "<classpath>");
 			writeLine(writer, 1, "<classpathentry kind=\"src\" path=\"src\"/>");
-			String javaVersion = oldJava ? "1.6" : java16 ? "16" : "17";
 			writeLine(writer, 1, "<classpathentry kind=\"con\" path=\"org.eclipse.jdt.launching.JRE_CONTAINER/"
 				+ "org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-" + javaVersion + "\"/>");
 			writeLine(writer, 1, "<classpathentry kind=\"lib\" path=\"jars/versions/" + version + "/"
 				+ version +".jar\">");
 			writeLine(writer, 2, "<attributes>");
-			if(!moveNatives)
+			if(inclNatives)
 				writeLine(writer, 3, "<attribute name=\"org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY\" "
 					+ "value=\"Client/jars/versions/" + version + "/" + version + "-natives\"/>");
 			writeLine(writer, 2, "</attributes>");
@@ -147,6 +106,27 @@ public class ClasspathGenerator
 		}
 		System.out.println("Done");
 		return 0;
+	}
+	
+	private String getJavaVersion(String[] split)
+	{
+		// Snapshot versions - Assume latest
+		if(split.length == 1)
+			return "21";
+			
+		if(Integer.parseInt(split[1]) <= 16)
+			return "1.8";
+		
+		if(Integer.parseInt(split[1]) <= 17)
+			return "16";
+		
+		if(Integer.parseInt(split[1]) <= 19)
+			return "17";
+		
+		if(Integer.parseInt(split[1]) == 20 && (split.length == 2 || Integer.parseInt(split[2]) <= 4))
+			return "17";
+		
+		return "21";
 	}
 	
 	private void writeLine(FileWriter writer, int numTabs, String str) throws IOException
