@@ -23,9 +23,9 @@ public class Main
 			"The input where files will be read (patch mode only)");
 		options.addOption("o", "output", true, "The output to place files (patch mode only)");
 		options.addOption("c", "conf", true, "The config folder in your mcp workspace (csv mode only)");
-		options.addOption("w", "mcp", true, "The directory of your mcp workspace (libraries and download mode only)");
+		options.addOption("w", "mcp", true, "The directory of your mcp workspace (libraries, download, and adder mode only)");
 		options.addOption("v", "version", true, "The minecraft version of your mcp workspace (download mode only)");
-		options.addOption("m", "mode", true, "Either \"patch\", \"csv\", \"libraries\", or \"download\"");
+		options.addOption("m", "mode", true, "Either \"patch\", \"csv\", \"libraries\", \"download\", or \"adder\"");
 		
 		CommandLineParser cmdlineParser = new DefaultParser();
 		CommandLine cmdLine;
@@ -41,7 +41,7 @@ public class Main
 		
 		if(!cmdLine.hasOption("mode"))
 		{
-			System.out.println("No mode (patch, csv, or libraries) specified");
+			System.out.println("No mode (patch, csv, libraries, download, or adder) specified");
 			return 2;
 		}
 		
@@ -55,7 +55,6 @@ public class Main
 			}
 			
 			String input = cmdLine.getOptionValue("input");
-			
 			File inputFolder = new File(input);
 			if(!inputFolder.exists())
 			{
@@ -70,7 +69,6 @@ public class Main
 			}
 			
 			String output = cmdLine.getOptionValue("output");
-			
 			File outputFolder = new File(output);
 			if(!outputFolder.exists())
 			{
@@ -94,7 +92,6 @@ public class Main
 				System.out.println("Invaild conf location");
 				return 3;
 			}
-			
 			return new MappingWriter(confFolder).run();
 		}
 		if(mode.equalsIgnoreCase("libraries"))
@@ -126,7 +123,7 @@ public class Main
 				System.out.println("Minecraft version not specified");
 				return 3;
 			}
-
+			
 			String mcp = cmdLine.getOptionValue("mcp");
 			String version = cmdLine.getOptionValue("version");
 			File mcpFolder = new File(mcp);
@@ -137,7 +134,24 @@ public class Main
 			}
 			return new FileDownloader(version, mcpFolder).run();
 		}
-		System.out.println("Invalid mode (patch, csv, or libraries) specified");
+		if(mode.equalsIgnoreCase("adder"))
+		{
+			if(!cmdLine.hasOption("mcp"))
+			{
+				System.out.println("No mcp folder specified");
+				return 3;
+			}
+			
+			String mcp = cmdLine.getOptionValue("mcp");
+			File mcpFolder = new File(mcp);
+			if(!mcpFolder.exists())
+			{
+				System.out.println("Invaild mcp location");
+				return 3;
+			}
+			return new LibraryAdder(mcpFolder).run();
+		}
+		System.out.println("Invalid mode (patch, csv, libraries, download, or adder) specified");
 		return 2;
 	}
 }

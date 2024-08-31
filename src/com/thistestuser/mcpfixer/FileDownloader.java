@@ -161,7 +161,7 @@ public class FileDownloader
 						return true;
 				}else
 					continue;
-				
+			
 			if(Objects.equals(action.getAsString(), "allow"))
 				if(ruleEntry.has("os"))
 				{
