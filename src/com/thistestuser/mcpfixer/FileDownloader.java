@@ -45,14 +45,14 @@ public class FileDownloader
 		return downloadJson(manifest, version, mcpFolder);
 	}
 	
-	public JsonObject getJsonAsObject(File json) throws IOException
+	private JsonObject getJsonAsObject(File json) throws IOException
 	{
 		Reader reader = Files.newBufferedReader(json.toPath());
 		JsonElement element = JsonParser.parseReader(reader);
 		return element.getAsJsonObject();
 	}
 	
-	public int downloadJson(File manifest, String version, File mcpFolder)
+	private int downloadJson(File manifest, String version, File mcpFolder)
 		throws IOException
 	{
 		JsonObject manifestObject = getJsonAsObject(manifest);
@@ -84,7 +84,7 @@ public class FileDownloader
 		return 4;
 	}
 	
-	public void downloadSide(File json, File mcpFolder, String side,
+	private void downloadSide(File json, File mcpFolder, String side,
 		String version) throws IOException
 	{
 		JsonObject versionObject = getJsonAsObject(json);
@@ -107,7 +107,7 @@ public class FileDownloader
 		}
 	}
 	
-	public void parseJson(String version, File json, File mcpFolder)
+	private void parseJson(String version, File json, File mcpFolder)
 		throws IOException
 	{
 		JsonObject versionObject = getJsonAsObject(json);
@@ -140,7 +140,7 @@ public class FileDownloader
 		}
 	}
 	
-	public boolean isAllowed(JsonArray rules)
+	private boolean isAllowed(JsonArray rules)
 	{
 		String os = OS.getOS().name;
 		
@@ -174,7 +174,7 @@ public class FileDownloader
 	}
 	
 	//Derived from https://github.com/HyCraftHD/Minecraft-Downloader/blob/main/src/main/java/net/hycrafthd/minecraft_downloader/util/OSUtil.java
-	public static String getArchClassifier()
+	private static String getArchClassifier()
 	{
 		String arch = System.getProperty("os.arch");
 		
@@ -188,7 +188,7 @@ public class FileDownloader
 			return ".";
 	}
 	
-	public void downloadLibrary(JsonObject downloads, File mcpFolder)
+	private void downloadLibrary(JsonObject downloads, File mcpFolder)
 		throws IOException
 	{
 		String path = downloads.getAsJsonObject("artifact").get("path").getAsString();
@@ -200,7 +200,7 @@ public class FileDownloader
 	}
 	
 	// < 1.19
-	public void downloadNative(String version, JsonObject classifiers,
+	private void downloadNative(String version, JsonObject classifiers,
 		File mcpFolder, boolean extract) throws IOException
 	{
 		String os = OS.getOS().name;
@@ -223,7 +223,7 @@ public class FileDownloader
 	}
 	
 	// < 1.19
-	public void extractNative(String version, File nativeFile, File mcpFolder)
+	private void extractNative(String version, File nativeFile, File mcpFolder)
 		throws IOException
 	{
 		File nativesDir =
@@ -262,7 +262,7 @@ public class FileDownloader
 	}
 	
 	//Derived from https://github.com/MinecraftForge/ForgeGradle/blob/FG_5.0/src/common/java/net/minecraftforge/gradle/common/util/VersionJson.java
-	public enum OS
+	private enum OS
 	{
 		WINDOWS("windows"),
 		MACOS("macos"),
