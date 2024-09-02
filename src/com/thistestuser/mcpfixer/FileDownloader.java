@@ -173,21 +173,6 @@ public class FileDownloader
 		return false;
 	}
 	
-	//Derived from https://github.com/HyCraftHD/Minecraft-Downloader/blob/main/src/main/java/net/hycrafthd/minecraft_downloader/util/OSUtil.java
-	private static String getArchClassifier()
-	{
-		String arch = System.getProperty("os.arch");
-		
-		if(arch.equals("x86") || arch.startsWith("i") && arch.endsWith("86"))
-			return "-x86";
-		else if(arch.equals("x86_64"))
-			return "-x86_64";
-		else if(arch.equals("aarch64"))
-			return "-arm64";
-		else
-			return ".";
-	}
-	
 	private void downloadLibrary(JsonObject downloads, File mcpFolder)
 		throws IOException
 	{
