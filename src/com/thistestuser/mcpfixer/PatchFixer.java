@@ -36,6 +36,11 @@ public class PatchFixer
 		try
 		{
 			File outputPatch = new File(output, "patches");
+			if(outputPatch.exists())
+			{
+				System.out.println("Please delete patches folder before running");
+				return 4;
+			}
 			outputPatch.mkdir();
 			File outputInject = new File(outputPatch, "inject");
 			outputInject.mkdir();
