@@ -180,7 +180,7 @@ public class ClasspathGenerator
 						{
 							File libFile = new File(mcpFolder, "jars/libraries/" + partialLibPath);
 							if(!libFile.exists())
-								System.out.println("Warning: Expected library was not found in path: " + libFile.getAbsolutePath());
+								System.out.println("Library was not found in expected location: " + libFile.getAbsolutePath());
 							String relPath = mcpFolder.toURI().relativize(libFile.toURI()).getPath();
 							writeLine(writer, 1, "<classpathentry kind=\"lib\" path=\"" + relPath + "\"/>");
 							itr.remove();
@@ -192,7 +192,21 @@ public class ClasspathGenerator
 			}
 			if(javaVersion.equals("17") || javaVersion.equals("21"))
 			{
-				
+				File libraries = new File(mcpFolder, "jars/serverLibraries");
+				if(!libraries.exists())
+				{
+					System.out.println("Server libraries folder is missing (jars/serverLibraries)");
+					System.out.println("You should use the fixer's downloader option to extract server libraries");
+					return 4;
+				}
+				List<File> files = new ArrayList<>();
+				getAllFiles(libraries, files);
+				//Write libraries
+				for(File file : files)
+				{
+					String relPath = mcpFolder.toURI().relativize(file.toURI()).getPath();
+					writeLine(writer, 1, "<classpathentry kind=\"lib\" path=\"" + relPath + "\"/>");
+				}
 			}
 			writeLine(writer, 1, "<classpathentry kind=\"output\" path=\"bin\"/>");
 			writeLine(writer, 0, "</classpath>");

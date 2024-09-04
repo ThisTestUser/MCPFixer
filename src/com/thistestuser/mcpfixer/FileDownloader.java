@@ -7,9 +7,13 @@ import java.io.Reader;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
+import java.util.Enumeration;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -103,6 +107,7 @@ public class FileDownloader
 			case "server":
 				File serverJar = new File(mcpFolder, "jars/minecraft_server." + version + ".jar");
 				FileUtils.copyURLToFile(url, serverJar);
+				extractLibraries(version, serverJar);
 				break;
 		}
 	}
@@ -244,6 +249,50 @@ public class FileDownloader
 			entry = inputStream.getNextEntry();
 		}
 		inputStream.close();
+	}
+	
+	private void extractLibraries(String version, File serverJar) throws IOException
+	{
+		JarFile jar = new JarFile(serverJar);
+		JarEntry entry = jar.getJarEntry("META-INF/versions/" + version + "/server-" + version + ".jar");
+		if(entry == null)
+		{
+			jar.close();
+			return;
+		}
+		System.out.println("New server JAR format (1.18+) detected. Extracting actual server jar and libraries");
+		
+		// Extract the server jar
+		File actualServerJar = new File(mcpFolder, "jars/server-" + version + ".jar");
+		FileUtils.copyInputStreamToFile(jar.getInputStream(entry), actualServerJar);
+		
+		// Extract server libraries
+		ZipEntry libEntry = jar.getEntry("META-INF/libraries/");
+		if(libEntry != null)
+		{
+			File serverLibraries = new File(mcpFolder, "jars/serverLibraries");
+			if(!serverLibraries.exists())
+				FileUtils.forceMkdir(serverLibraries);
+			
+			Enumeration<JarEntry> entries = jar.entries();
+			while(entries.hasMoreElements())
+			{
+				JarEntry e = entries.nextElement();
+				if(e.getName().startsWith("META-INF/libraries/") && !e.isDirectory())
+				{
+					File libFile = new File(mcpFolder,
+						"jars/serverLibraries/" + e.getName().substring("META-INF/libraries/".length()));
+					FileUtils.copyInputStreamToFile(jar.getInputStream(e), libFile);
+				}
+			}
+		}
+		jar.close();
+		
+		File bundledJar = new File(mcpFolder, "jars/minecraft_server." + version + "_bundled.jar");
+		bundledJar.delete();
+		FileUtils.moveFile(serverJar, bundledJar);
+		FileUtils.moveFile(actualServerJar, serverJar);
+		System.out.println("Extracted libraries and server JAR from bundled JAR");
 	}
 	
 	//Derived from https://github.com/MinecraftForge/ForgeGradle/blob/FG_5.0/src/common/java/net/minecraftforge/gradle/common/util/VersionJson.java
