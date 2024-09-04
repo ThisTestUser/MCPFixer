@@ -260,7 +260,7 @@ public class FileDownloader
 			jar.close();
 			return;
 		}
-		System.out.println("New server JAR format (1.18+) detected. Extracting actual server jar and libraries");
+		System.out.println("Bundled server JAR (1.18+) detected. Extracting actual server jar and libraries");
 		
 		// Extract the server jar
 		File actualServerJar = new File(mcpFolder, "jars/server-" + version + ".jar");
