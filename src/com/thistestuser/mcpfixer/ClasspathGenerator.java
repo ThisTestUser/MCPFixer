@@ -13,10 +13,12 @@ import java.util.Map.Entry;
 public class ClasspathGenerator
 {
 	private final File mcpFolder;
+	private String javaVersion;
 	
-	public ClasspathGenerator(File mcpFolder)
+	public ClasspathGenerator(File mcpFolder, String javaVersion)
 	{
 		this.mcpFolder = mcpFolder;
+		this.javaVersion = javaVersion;
 	}
 	
 	public int run()
@@ -37,6 +39,16 @@ public class ClasspathGenerator
 		String version = versions.toURI().relativize(versions.listFiles()[0].toURI()).getPath();
 		//Remove slash
 		version = version.substring(0, version.length() - 1);
+		if(javaVersion == null)
+		{
+			if(!version.matches("^\\d+(\\.\\d+){1,2}$"))
+			{
+				System.out.println("Snapshot version detected. You must specify a Java version with -j");
+				return 4;
+			}
+			javaVersion = getJavaVersion(version.split("\\."));
+		}
+		System.out.println("Using Java version " + javaVersion);
 		int result = writeClientClasspath(libraries, version);
 		if(result != 0)
 			return result;
@@ -58,9 +70,8 @@ public class ClasspathGenerator
 		try
 		{
 			System.out.println("Writing to .classpath for client");
-			String[] split = version.split("\\.");
-			boolean inclNatives = Integer.parseInt(split[0]) == 1 && Integer.parseInt(split[1]) <= 18;
-			String javaVersion = getJavaVersion(split);
+			File nativesFolder = new File(mcpFolder, "jars/versions/" + version + "/" + version + "-natives");
+			boolean inclNatives = nativesFolder.exists() && nativesFolder.listFiles().length > 0;
 			
 			FileWriter writer = new FileWriter(classpath);
 			writeLine(writer, 0, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
@@ -138,8 +149,6 @@ public class ClasspathGenerator
 		try
 		{
 			System.out.println("Writing to .classpath for server");
-			String[] split = version.split("\\.");
-			String javaVersion = getJavaVersion(split);
 			
 			FileWriter writer = new FileWriter(classpath);
 			writeLine(writer, 0, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
@@ -223,10 +232,6 @@ public class ClasspathGenerator
 	
 	private String getJavaVersion(String[] split)
 	{
-		// Snapshot versions - Assume latest
-		if(split.length == 1)
-			return "21";
-			
 		if(Integer.parseInt(split[1]) <= 16)
 			return "1.8";
 		
