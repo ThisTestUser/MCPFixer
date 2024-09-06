@@ -25,7 +25,7 @@ public class Main
 		options.addOption("c", "conf", true, "The config folder in your mcp workspace (csv mode only)");
 		options.addOption("w", "mcp", true, "The directory of your mcp workspace (libraries, download, and adder mode only)");
 		options.addOption("v", "version", true, "The minecraft version of your mcp workspace (download mode only)");
-		options.addOption("j", "java", true, "The Java version to write - only needed for snapshots (libraries mode only)");
+		options.addOption("j", "java", true, "The minimum Java version to run - only needed for snapshots (libraries mode only)");
 		options.addOption("m", "mode", true, "Either \"patch\", \"csv\", \"libraries\", \"download\", or \"adder\"");
 		
 		CommandLineParser cmdlineParser = new DefaultParser();

@@ -5,6 +5,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -55,8 +56,49 @@ public class ClasspathGenerator
 		result = writeServerClasspath(version);
 		if(result != 0)
 			return result;
+		
+		// Fix Eclipse configuration files
+		System.out.println("Fixing Eclipse configuration files");
+		editConfigFile("eclipse/.metadata/.plugins/org.eclipse.core.runtime/.settings/org.eclipse.jdt.core.prefs", "=1.6", "=" + javaVersion);
+		if(!javaVersion.equals("1.8"))
+		{
+			editConfigFile("eclipse/Client/.settings/org.eclipse.jdt.core.prefs", "=1.8", "=" + javaVersion);
+			editConfigFile("eclipse/Server/.settings/org.eclipse.jdt.core.prefs", "=1.8", "=" + javaVersion);
+		}
+		editConfigFile("eclipse/.metadata/.plugins/org.eclipse.debug.core/.launches/Client.launch", "-Xincgc ", "");
+		editConfigFile("eclipse/.metadata/.plugins/org.eclipse.debug.core/.launches/Server.launch", "-Xincgc ", "");
+		
+		if(javaVersion.equals("17") || javaVersion.equals("21")
+			|| new File(mcpFolder, "src/minecraft_server/net/minecraft/server/Main.java").exists())
+			editConfigFile("eclipse/.metadata/.plugins/org.eclipse.debug.core/.launches/Server.launch",
+				"net.minecraft.server.MinecraftServer", "net.minecraft.server.Main");
+		
+		if(javaVersion.equals("17") || javaVersion.equals("21"))
+		{
+			editConfigFile("eclipse/Server/.project", "<arguments>1.0-name-matches-false-false-libraries</arguments>",
+				"<arguments>1.0-name-matches-false-true-(libraries|serverLibraries)</arguments>");
+			addServerFilter("eclipse/Server/.project");
+		}
+		
 		System.out.println("Done");
 		return 0;
+	}
+	
+	private String getJavaVersion(String[] split)
+	{
+		if(Integer.parseInt(split[1]) <= 16)
+			return "1.8";
+		
+		if(Integer.parseInt(split[1]) <= 17)
+			return "16";
+		
+		if(Integer.parseInt(split[1]) <= 19)
+			return "17";
+		
+		if(Integer.parseInt(split[1]) == 20 && (split.length == 2 || Integer.parseInt(split[2]) <= 4))
+			return "17";
+		
+		return "21";
 	}
 	
 	private int writeClientClasspath(File libraries, String version)
@@ -230,21 +272,93 @@ public class ClasspathGenerator
 		}
 	}
 	
-	private String getJavaVersion(String[] split)
+	private void editConfigFile(String relPath, String find, String replace)
 	{
-		if(Integer.parseInt(split[1]) <= 16)
-			return "1.8";
-		
-		if(Integer.parseInt(split[1]) <= 17)
-			return "16";
-		
-		if(Integer.parseInt(split[1]) <= 19)
-			return "17";
-		
-		if(Integer.parseInt(split[1]) == 20 && (split.length == 2 || Integer.parseInt(split[2]) <= 4))
-			return "17";
-		
-		return "21";
+		try
+		{
+			File file = new File(mcpFolder, relPath);
+			
+			if(!file.exists())
+			{
+				System.out.println("Warning: " + file.getAbsolutePath() + " is missing, skipping");
+				return;
+			}
+			
+			boolean modified = false;
+			List<String> lines = Files.readAllLines(file.toPath());
+			for(int i = 0; i < lines.size(); i++)
+			{
+				String line = lines.get(i);
+				if(line.contains(find))
+				{
+					lines.set(i, line.replace(find, replace));
+					modified = true;
+				}
+			}
+			
+			if(modified)
+			{
+				Files.write(file.toPath(), lines);
+				System.out.println("Fixed configuration at " + relPath);
+			}
+		}catch(Exception e)
+		{
+			e.printStackTrace();
+			System.out.println("Exception fixing configuration at " + relPath);
+		}
+	}
+	
+	private void addServerFilter(String relPath)
+	{
+		try
+		{
+			File file = new File(mcpFolder, relPath);
+			
+			if(!file.exists())
+			{
+				System.out.println("Warning: " + file.getAbsolutePath() + " is missing, skipping");
+				return;
+			}
+			
+			List<String> lines = Files.readAllLines(file.toPath());
+			// Count </filter>
+			int filterCount = 0;
+			int lastFilterIdx = -1;
+			for(int i = 0; i < lines.size(); i++)
+			{
+				String line = lines.get(i);
+				if(line.contains("</filter>"))
+				{
+					filterCount++;
+					lastFilterIdx = i;
+				}
+			}
+			
+			if(filterCount == 3)
+			{
+				List<String> filterObj = new ArrayList<>();
+				filterObj.add("\t\t</filter>");
+				filterObj.add("\t\t<filter>");
+				filterObj.add("\t\t\t<id>1462950235937</id>");
+				filterObj.add("\t\t\t<name>jars/serverLibraries</name>");
+				filterObj.add("\t\t\t<type>29</type>");
+				filterObj.add("\t\t\t<matcher>");
+				filterObj.add("\t\t\t\t<id>org.eclipse.ui.ide.multiFilter</id>");
+				filterObj.add("\t\t\t\t<arguments>1.0-name-matches-false-false-*</arguments>");
+				filterObj.add("\t\t\t</matcher>");
+				Collections.reverse(filterObj);
+				
+				for(String line : filterObj)
+					lines.add(lastFilterIdx, line);
+				
+				Files.write(file.toPath(), lines);
+				System.out.println("Added serverLibraries filter to Server project");
+			}
+		}catch(Exception e)
+		{
+			e.printStackTrace();
+			System.out.println("Exception fixing Server project filters");
+		}
 	}
 	
 	private void writeLine(FileWriter writer, int numTabs, String str) throws IOException
