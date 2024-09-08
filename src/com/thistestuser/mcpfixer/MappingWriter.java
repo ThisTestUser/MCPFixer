@@ -199,8 +199,16 @@ public class MappingWriter
 										
 										// Add parameter mapping
 										if(paramMapping.getAsJsonObject().has("name") && param.getMapped().startsWith("p_"))
-											params.add(new String[]{param.getMapped(),
-												paramMapping.getAsJsonObject().get("name").getAsString(), side});
+										{
+											String paramName = paramMapping.getAsJsonObject().get("name").getAsString();
+											if(!paramName.startsWith("p"))
+											{
+												System.out.println("Only checked ParchmentMC mappings are supported!");
+												System.out.println("Please redownload the mappings which should contain \"checked\" in the name");
+												return 4;
+											}
+											params.add(new String[]{param.getMapped(), paramName, side});
+										}
 										
 										// Append parameter javadoc to method
 										if(paramMapping.getAsJsonObject().has("javadoc"))
