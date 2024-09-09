@@ -363,13 +363,13 @@ public class MappingWriter
 			for(IField fld : cls.getFields())
 			{
 				String name = obf.remapField(fld.getMapped());
-				if(name.startsWith("f_"))
+				if(name.startsWith("f_") || name.startsWith("field_"))
 					fields.put(name, fld.getOriginal());
 			}
 			for(IMethod mtd : cls.getMethods())
 			{
 				String name = obf.remapMethod(mtd.getMapped(), mtd.getMappedDescriptor());
-				if(name.startsWith("m_"))
+				if(name.startsWith("m_") || name.startsWith("func_"))
 					methods.put(name, mtd.getOriginal());
 			}
 		}
