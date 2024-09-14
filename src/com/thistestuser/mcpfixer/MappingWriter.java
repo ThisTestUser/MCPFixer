@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Reader;
+import java.nio.charset.Charset;
+import java.nio.charset.CharsetEncoder;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -255,7 +257,7 @@ public class MappingWriter
 			{
 				String cname = clientFields.get(name);
 				String sname = serverFields.get(name);
-				String javadoc = fieldJavadocs.getOrDefault(name, "");
+				String javadoc = escapeChars(fieldJavadocs.getOrDefault(name, ""));
 				if(cname.equals(sname))
 				{
 					fields.add(new String[]{name, cname, "2", javadoc});
@@ -268,7 +270,7 @@ public class MappingWriter
 			{
 				String cname = clientMethods.get(name);
 				String sname = serverMethods.get(name);
-				String javadoc = methodJavadocs.getOrDefault(name, "");
+				String javadoc = escapeChars(methodJavadocs.getOrDefault(name, ""));
 				if(cname.equals(sname))
 				{
 					methods.add(new String[]{name, cname, "2", javadoc});
@@ -351,6 +353,18 @@ public class MappingWriter
 		}
 		
 		return indexes;
+	}
+	
+	private String escapeChars(String input)
+	{
+		StringBuilder output = new StringBuilder();
+		for(char ch : input.toCharArray())
+			if(ch > 127)
+				output.append(String.format("\\u%04x", (int)ch));
+			else
+				output.append(ch);
+		
+		return output.toString();
 	}
 	
 	private void addFieldsAndMethods(IMappingFile file, IMappingFile srg, Map<String, String> fields, Map<String, String> methods)
